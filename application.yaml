@@ -1,0 +1,31 @@
+minio:
+    endpoint: localhost:10074
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket-name-videos: stella-videos
+    bucket-name-video-subtitles: stella-video-subtitles
+
+redis:
+    host: localhost
+    port: 10079
+    db: 0
+
+kafka:
+    bootstrap-servers: localhost:29092,localhost:39092,localhost:49092
+    producer:
+        topic-summary-video-end: summary-video-end
+        acks: all #ACK应答级别，指定分区中必须要有多少个副本收到消息之后才会认为消息成功写入，默认为1只要分区的leader副本成功写入消息；0表示不需要等待任何服务端响应；-1或all需要等待ISR中所有副本都成功写入消息
+        retries: 3 #重试次数
+        buffer-memory: 33554432 #缓冲区大小，默认32M
+        batch-size: 16384 #批次大小，默认16k
+        client-id: clientSummarizer #客户端ID
+        compression-type: none #消息压缩方式，默认为none，另外有gzip、snappy、lz4
+        linger-ms: 1000
+    consumer:
+        topic-summary-video-start: summary-video-start
+        group-id: kafkaRunner2
+        auto-offset-reset: earliest
+        enable-auto-commit: false
+        session-timeout-ms: 10000,  # 会话超时时间
+        max-poll-interval-ms: 300000,  # 最大提交时间间隔
+        heartbeat-interval-ms: 3000,  # 心跳间隔
