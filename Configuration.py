@@ -1,12 +1,20 @@
 import yaml
 import threading
+import os
+import sys
 
 class Configuration:
     _lock = threading.Lock()
     _local = threading.local()
 
     def __init__(self):
-        with open("application.yaml", "r", encoding="utf-8") as stream:
+        # Project root directory.
+        project_root_directory_path: str = Configuration.get_project_root_directory_path()
+        self.project_root_directory_path = project_root_directory_path
+
+        # Read application.yaml.
+        application_yaml_path: str = os.path.join(project_root_directory_path, "application.yaml")
+        with open(application_yaml_path, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
 
         # Redis.
@@ -19,6 +27,7 @@ class Configuration:
         self.minio_access_key = config['minio']['access-key']
         self.minio_secret_key = config['minio']['secret-key']
         self.minio_bucket_name_videos = config['minio']['bucket-name-videos']
+        self.minio_bucket_name_analyzed_videos = config['minio']['bucket-name-analyzed-videos']
         self.minio_bucket_name_video_subtitles = config['minio']['bucket-name-video-subtitles']
 
         # Kafka.
@@ -39,6 +48,8 @@ class Configuration:
         self.kafka_consumer_max_poll_interval_ms = config['kafka']["consumer"]['max-poll-interval-ms']
         self.kafka_consumer_heartbeat_interval_ms = config['kafka']["consumer"]['heartbeat-interval-ms']
 
+        self.temp_dir: str = config["temp-dir"]
+
 
     @classmethod
     def get_instance(cls):
@@ -46,3 +57,11 @@ class Configuration:
             if not hasattr(cls._local, 'instance'):
                 cls._local.instance = cls()
         return cls._local.instance
+
+    @staticmethod
+    def get_project_root_directory_path() -> str:
+        project_name: str = "magic-insight-analyzer"
+        for path in sys.path:
+            if path.endswith(project_name):
+                return path
+        return ""

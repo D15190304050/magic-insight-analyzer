@@ -1,6 +1,7 @@
 import logging
 from Configuration import Configuration
 from confluent_kafka import Consumer, KafkaException, KafkaError
+from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 config = Configuration.get_instance()
@@ -23,20 +24,22 @@ class KafkaConsumer:
         try:
             self.consumer.subscribe([topic])
 
-            while True:
-                msg = self.consumer.poll(timeout=1.0)  # 拉取消息，设置超时时间
-                if msg is None:
-                    continue
-                if msg.error():
-                    if msg.error().code() == KafkaError._PARTITION_EOF:
-                        logger.info('End of partition reached')
+            with ThreadPoolExecutor(max_workers=3) as executor:
+
+                while True:
+                    msg = self.consumer.poll(timeout=1.0)  # 拉取消息，设置超时时间
+                    if msg is None:
+                        continue
+                    if msg.error():
+                        if msg.error().code() == KafkaError._PARTITION_EOF:
+                            logger.info('End of partition reached')
+                        else:
+                            raise KafkaException(msg.error())
                     else:
-                        raise KafkaException(msg.error())
-                else:
-                    message_value = msg.value().decode("utf-8")
-                    logger.info(f'Received message: {message_value}')
-                    handler(message = message_value)
-                    self.consumer.commit()
+                        message_value = msg.value().decode("utf-8")
+                        logger.info(f'Received message: {message_value}')
+                        executor.submit(handler, message=message_value)
+                        self.consumer.commit()
 
         except Exception as e:
             logger.error(f"Error occurred: {e}")

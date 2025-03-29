@@ -3,6 +3,7 @@ minio:
     access-key: minioadmin
     secret-key: minioadmin
     bucket-name-videos: stella-videos
+    bucket-name-analyzed-videos: stella-analyzed-videos
     bucket-name-video-subtitles: stella-video-subtitles
 
 redis:
@@ -27,5 +28,7 @@ kafka:
         auto-offset-reset: earliest
         enable-auto-commit: false
         session-timeout-ms: 10000,  # 会话超时时间
-        max-poll-interval-ms: 300000,  # 最大提交时间间隔
+        max-poll-interval-ms: 300000,  # 最大提交时间间隔，单位ms
         heartbeat-interval-ms: 3000,  # 心跳间隔
+
+temp-dir: D:/DinoStark/Temp/StellaTemp # 临时文件的存储目录
